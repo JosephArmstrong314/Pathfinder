@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import Node from "./Node.jsx";
+import {
+  dijkstra,
+  getNodesInShortestPathOrder,
+} from "./algorithms/dijkstra.js";
 import "./Pathfinder.css";
 
 const START_NODE_ROW = 2;
@@ -10,6 +14,7 @@ const FINISH_NODE_COL = 7;
 function Pathfinder() {
   const [grid, setGrid] = useState([]);
   const [mouseIsPressed, setMouseIsPressed] = useState(false);
+  const [isVisualized, setIsVisualized] = useState(false);
 
   useEffect(() => {
     setGrid(getInitialGrid());
@@ -83,14 +88,81 @@ function Pathfinder() {
   };
 
   const handleReset = () => {
+    console.log("here");
+    for (let row = 0; row < grid.length; row++) {
+      console.log("here row");
+      for (let col = 0; col < grid[row].length; col++) {
+        console.log("here col");
+        document
+          .getElementById(`node-${row}-${col}`)
+          .classList.remove("node-visited", "node-wall", "node-shortest-path");
+      }
+    }
     const newGrid = getInitialGrid();
     setGrid(newGrid);
+    console.log(grid);
+    document.getElementById(
+      `node-${START_NODE_ROW}-${START_NODE_COL}`
+    ).className = "node node-start";
+    document.getElementById(
+      `node-${FINISH_NODE_ROW}-${FINISH_NODE_COL}`
+    ).className = "node node-finish";
+    setIsVisualized(false);
+  };
+
+  const animateDijkstra = (visitedNodesInOrder, nodesInShortestPathOrder) => {
+    for (let i = 0; i <= visitedNodesInOrder.length; i++) {
+      if (i === visitedNodesInOrder.length) {
+        setTimeout(() => {
+          animateShortestPath(nodesInShortestPathOrder);
+        }, 10 * i);
+        return;
+      }
+      setTimeout(() => {
+        const node = visitedNodesInOrder[i];
+        if (
+          (node.row != START_NODE_ROW || node.col != START_NODE_COL) &&
+          (node.row != FINISH_NODE_ROW || node.col != FINISH_NODE_COL)
+        ) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            "node node-visited";
+        }
+      }, 10 * i);
+    }
+  };
+
+  const animateShortestPath = (nodesInShortestPathOrder) => {
+    for (let i = 0; i < nodesInShortestPathOrder.length; i++) {
+      setTimeout(() => {
+        const node = nodesInShortestPathOrder[i];
+        if (
+          (node.row != START_NODE_ROW || node.col != START_NODE_COL) &&
+          (node.row != FINISH_NODE_ROW || node.col != FINISH_NODE_COL)
+        ) {
+          document.getElementById(`node-${node.row}-${node.col}`).className =
+            "node node-shortest-path";
+        }
+      }, 50 * i);
+    }
+  };
+
+  const visualizeDijkstra = () => {
+    if (isVisualized) {
+      return;
+    }
+    setIsVisualized(true);
+    const startNode = grid[START_NODE_ROW][START_NODE_COL];
+    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
+    const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
+    animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
   };
 
   return (
     <>
       <h1>Pathfinder</h1>
       <button onClick={handleReset}>Reset</button>
+      <button onClick={visualizeDijkstra}>Visualize</button>
       <div className="grid">
         {grid?.map((row, rowIdx) => {
           return (
@@ -101,9 +173,6 @@ function Pathfinder() {
                     key={nodeIdx}
                     node={node}
                     mouseIsPressed={mouseIsPressed}
-                    //onClick={(row, col) => handleClick(row, col)}
-                    //onClick={(row, col) => handleClick(row, col)}
-                    handleClick={handleClick}
                     handleMouseDown={handleMouseDown}
                     handleMouseEnter={handleMouseEnter}
                     handleMouseUp={handleMouseUp}

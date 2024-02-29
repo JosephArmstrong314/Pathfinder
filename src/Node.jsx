@@ -7,14 +7,10 @@ function Node(props) {
   const extraClassName = isFinish
     ? "node-finish"
     : isStart
-    ? "node-start"
-    : isWall
-    ? "node-wall"
-    : "";
-
-  const handleClickNode = () => {
-    props.handleClick(row, col);
-  };
+      ? "node-start"
+      : isWall
+        ? "node-wall"
+        : "";
 
   const handleMouseEnterNode = () => {
     props.handleMouseEnter(row, col);
@@ -32,8 +28,6 @@ function Node(props) {
     <div
       id={`node-${row}-${col}`}
       className={`node ${extraClassName}`}
-      //onClick={() => props.onClick(row, col)}
-      // onClick={handleClickNode}
       onMouseDown={handleMouseDownNode}
       onMouseEnter={handleMouseEnterNode}
       onMouseUp={handleMouseUpNode}
