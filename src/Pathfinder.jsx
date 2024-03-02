@@ -11,20 +11,36 @@ const START_NODE_COL = 2;
 const FINISH_NODE_ROW = 7;
 const FINISH_NODE_COL = 7;
 
+const MAX_GRID_WIDTH = 20;
+const MIN_GRID_WIDTH = 5;
+const MAX_GRID_HEIGHT = 20;
+const MIN_GRID_HEIGHT = 5;
+
+const DEFAULT_GRID_WIDTH = 10;
+const DEFAULT_GRID_HEIGHT = 10;
+
 function Pathfinder() {
   const [grid, setGrid] = useState([]);
   const [mouseIsPressed, setMouseIsPressed] = useState(false);
   const [isVisualized, setIsVisualized] = useState(false);
+  const [gridWidth, setGridWidth] = useState(DEFAULT_GRID_WIDTH);
+  const [gridHeight, setGridHeight] = useState(DEFAULT_GRID_HEIGHT);
+  const [inputGridWidth, setInputGridWidth] = useState(DEFAULT_GRID_WIDTH);
+  const [inputGridHeight, setInputGridHeight] = useState(DEFAULT_GRID_HEIGHT);
 
   useEffect(() => {
     setGrid(getInitialGrid());
   }, []);
 
+  useEffect(() => {
+    setGrid(getInitialGrid());
+  }, [gridWidth, gridHeight]);
+
   const getInitialGrid = () => {
     const grid_init = [];
-    for (let rowIdx = 0; rowIdx < 10; rowIdx++) {
+    for (let rowIdx = 0; rowIdx < gridHeight; rowIdx++) {
       const row = [];
-      for (let colIdx = 0; colIdx < 10; colIdx++) {
+      for (let colIdx = 0; colIdx < gridWidth; colIdx++) {
         row.push(createNode(rowIdx, colIdx));
       }
       grid_init.push(row);
@@ -59,7 +75,6 @@ function Pathfinder() {
 
   const handleMouseDown = (row, col) => {
     setMouseIsPressed(true);
-    console.log("mouse was set to true");
     handleClick(row, col);
   };
 
@@ -67,13 +82,11 @@ function Pathfinder() {
     if (!mouseIsPressed) {
       return;
     }
-    console.log("mouse is down and has entered");
     handleClick(row, col);
   };
 
   const handleMouseUp = () => {
     setMouseIsPressed(false);
-    console.log("mouse was set to false");
   };
 
   const getNewGrid_ToggleWall = (row, col) => {
@@ -88,11 +101,8 @@ function Pathfinder() {
   };
 
   const handleReset = () => {
-    console.log("here");
     for (let row = 0; row < grid.length; row++) {
-      console.log("here row");
       for (let col = 0; col < grid[row].length; col++) {
-        console.log("here col");
         document
           .getElementById(`node-${row}-${col}`)
           .classList.remove("node-visited", "node-wall", "node-shortest-path");
@@ -100,7 +110,6 @@ function Pathfinder() {
     }
     const newGrid = getInitialGrid();
     setGrid(newGrid);
-    console.log(grid);
     document.getElementById(
       `node-${START_NODE_ROW}-${START_NODE_COL}`
     ).className = "node node-start";
@@ -158,11 +167,68 @@ function Pathfinder() {
     animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
   };
 
+  const handleGridSizeSubmit = (event) => {
+    event.preventDefault();
+    setGridWidth(!!inputGridWidth ? inputGridWidth : MIN_GRID_WIDTH);
+    setGridHeight(!!inputGridHeight ? inputGridHeight : MIN_GRID_HEIGHT);
+  };
+
+  const handleOnInputGridWidthChange = (event) => {
+    let inputValue = event.target.value;
+
+    if (!/^\d*$/.test(inputValue)) {
+      return;
+    }
+
+    inputValue = Math.min(MAX_GRID_WIDTH, inputValue);
+
+    inputValue = Math.max(MIN_GRID_WIDTH, inputValue);
+
+    setInputGridWidth(inputValue);
+  };
+
+  const handleOnInputGridHeightChange = (event) => {
+    let inputValue = event.target.value;
+
+    if (!/^\d*$/.test(inputValue)) {
+      return;
+    }
+
+    inputValue = Math.min(MAX_GRID_HEIGHT, inputValue);
+
+    inputValue = Math.max(MIN_GRID_HEIGHT, inputValue);
+
+    setInputGridHeight(inputValue);
+  };
+
   return (
     <>
       <h1>Pathfinder</h1>
       <button onClick={handleReset}>Reset</button>
       <button onClick={visualizeDijkstra}>Visualize</button>
+      <form onSubmit={handleGridSizeSubmit} name="grid-size-form">
+        <input
+          type="number"
+          min={MIN_GRID_WIDTH}
+          max={MAX_GRID_WIDTH}
+          value={inputGridWidth}
+          placeholder="width"
+          onChange={handleOnInputGridWidthChange}
+          name="grid-width-input"
+          className="input"
+        />
+        <input
+          type="number"
+          min={MIN_GRID_HEIGHT}
+          max={MAX_GRID_HEIGHT}
+          value={inputGridHeight}
+          placeholder="height"
+          onChange={handleOnInputGridHeightChange}
+          name="grid-height-input"
+          className="input"
+        />
+        <button type="submit">Update Grid Size</button>
+      </form>
       <div className="grid">
         {grid?.map((row, rowIdx) => {
           return (

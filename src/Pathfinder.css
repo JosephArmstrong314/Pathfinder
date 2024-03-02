@@ -6,3 +6,9 @@
   box-sizing: border-box;
   line-height: 0;
 }
+
+.input {
+  width: 150px;
+  height: 40px;
+  font-size: x-large;
+}
